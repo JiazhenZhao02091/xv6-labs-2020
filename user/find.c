@@ -19,10 +19,11 @@ int main(int argc, char *argv[])
     char *name = argv[2]; // name
 
     if (find(dir, name, 0) == -1)
-        printf("未找到.\n");
+        printf("\n");
 
     exit(0);
 }
+// 在 path 寻找 name 的文件
 int find(char *path, char *name, int flag) // flag == 0 --> 目录为 ./..
 {
 
@@ -44,6 +45,7 @@ int find(char *path, char *name, int flag) // flag == 0 --> 目录为 ./..
         close(fd);
         return -1;
     }
+
     switch (st.type)
     {
 
@@ -60,14 +62,16 @@ int find(char *path, char *name, int flag) // flag == 0 --> 目录为 ./..
             break;
         }
         strcpy(buf, path);
-        p = buf + strlen(buf);
+        p = buf + strlen(buf); // p 指向 buf
         *p++ = '/';
 
-        while (read(fd, &de, sizeof(de)) == sizeof(de)) // 每次读一个 de 结构体
+        while (read(fd, &de, sizeof(de)) == sizeof(de)) // 每次读一个 de 结构体 即读取一个文件
         {
             if (de.inum == 0)
                 continue;
 
+            // p指针位置未改变,保证了每次只会添加一个文件路径
+            // DIRSIZE 保证了目录项的最大长度
             memmove(p, de.name, DIRSIZ); // dest src size // 移动de位置到p末尾，即buf末尾
             p[DIRSIZ] = 0;
 
@@ -77,11 +81,12 @@ int find(char *path, char *name, int flag) // flag == 0 --> 目录为 ./..
                 continue;
             }
 
-            if (strcmp(de.name, ".") == 0 || strcmp(de.name, "..") == 0)
-                continue;
-
             if (st.type == T_DIR)
+            {
+                if (strcmp(de.name, ".") == 0 || strcmp(de.name, "..") == 0)
+                    continue;
                 find(buf, name, 1);
+            }
             if (st.type == T_FILE)
             {
                 if (strcmp(name, fmtname(buf)) == 0) // 比较文件名

@@ -18,6 +18,9 @@ char *fmtname(char *path)
   if (strlen(p) >= DIRSIZ)
     return p;
   memmove(buf, p, strlen(p));
+  // 除了 DIRSIZE 之外的剩余空间被置为空
+  // 指针指向某一内存区域 填充的数据 填充给的字节数
+  // buf 指向数组首部(char型指针)
   memset(buf + strlen(p), ' ', DIRSIZ - strlen(p));
   return buf;
 }
