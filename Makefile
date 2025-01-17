@@ -1,4 +1,3 @@
-
 # To compile and run with a lab solution, set the lab name in lab.mk
 # (e.g., LB=util).  Run make grade to test solution with the lab's
 # grade script (e.g., grade-lab-util).
@@ -37,6 +36,7 @@ OBJS = \
   $K/plic.o \
   $K/virtio_disk.o \
 
+# 宏定义
 ifeq ($(LAB),pgtbl)
 OBJS += $K/vmcopyin.o
 endif
@@ -67,6 +67,7 @@ LD = $(TOOLPREFIX)ld
 OBJCOPY = $(TOOLPREFIX)objcopy
 OBJDUMP = $(TOOLPREFIX)objdump
 
+# 编译标志
 CFLAGS = -Wall -Werror -O -fno-omit-frame-pointer -ggdb
 
 ifdef LAB
@@ -153,6 +154,7 @@ UPROGS=\
 	$U/_pingpong\
 	$U/_find\
 	$U/_xargs\
+	$U/_primes\
 
 
 ifeq ($(LAB),syscall)
