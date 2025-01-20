@@ -103,22 +103,3 @@ int get_free_mem(void)
 
   return pages * PGSIZE; // 分页机制
 }
-
-// discard.
-// 返回内存中剩余的空闲字节数
-int freemem(void)
-{
-  int free_bytes = 0;
-  struct run *r;
-
-  acquire(&kmem.lock); // 获取锁
-  r = kmem.freelist;
-  while (r)
-  {
-    free_bytes += PGSIZE; // 累加每个空闲页的大小
-    r = r->next;
-  }
-  release(&kmem.lock); // 释放锁
-
-  return free_bytes;
-}
