@@ -106,3 +106,19 @@ uint64 sys_trace(void)
     return -1;
   return trace(mask);
 }
+
+// // sys info
+// uint64 sys_sysinfo(void)
+// {
+//   return sysinfo();
+//   /*
+//     f 为文件，st为结构体地址
+//     struct sysinfo *s;
+
+//     if (argaddr(0, &s) < 0)
+//       return -1;
+
+//       &s->freemem = get_free_mem();
+//     &s->nproc = get_nproc();
+//   */
+// }

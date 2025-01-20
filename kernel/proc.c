@@ -730,3 +730,18 @@ int trace(int mask)
   p->trace_flag = mask;
   return 0;
 }
+
+// get the number of process.
+int get_process_num()
+{
+  int nums = 0;
+  struct proc *p;
+  for (p = proc; p < &proc[NPROC]; p++)
+  {
+    acquire(&p->lock);
+    if (p->state != UNUSED)
+      nums++;
+    release(&p->lock);
+  }
+  return nums;
+}

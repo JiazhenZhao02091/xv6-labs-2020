@@ -14,49 +14,52 @@ void freerange(void *pa_start, void *pa_end);
 extern char end[]; // first address after kernel.
                    // defined by kernel.ld.
 
-struct run {
+struct run
+{
   struct run *next;
 };
 
-struct {
+struct
+{
   struct spinlock lock;
-  struct run *freelist;
+  struct run *freelist; // 空闲链表 页
 } kmem;
 
-void
-kinit()
+void kinit()
 {
   initlock(&kmem.lock, "kmem");
-  freerange(end, (void*)PHYSTOP);
+  freerange(end, (void *)PHYSTOP); // end 为内核后的第一个字节   PHYSTOP 为内存结尾值
 }
 
-void
-freerange(void *pa_start, void *pa_end)
+// 空闲范围
+void freerange(void *pa_start, void *pa_end)
 {
   char *p;
-  p = (char*)PGROUNDUP((uint64)pa_start);
-  for(; p + PGSIZE <= (char*)pa_end; p += PGSIZE)
+  p = (char *)PGROUNDUP((uint64)pa_start);
+  for (; p + PGSIZE <= (char *)pa_end; p += PGSIZE)
+  {
+
     kfree(p);
+  }
 }
 
 // Free the page of physical memory pointed at by v,
 // which normally should have been returned by a
 // call to kalloc().  (The exception is when
 // initializing the allocator; see kinit above.)
-void
-kfree(void *pa)
+void kfree(void *pa)
 {
   struct run *r;
 
-  if(((uint64)pa % PGSIZE) != 0 || (char*)pa < end || (uint64)pa >= PHYSTOP)
+  if (((uint64)pa % PGSIZE) != 0 || (char *)pa < end || (uint64)pa >= PHYSTOP)
     panic("kfree");
 
   // Fill with junk to catch dangling refs.
   memset(pa, 1, PGSIZE);
 
-  r = (struct run*)pa;
+  r = (struct run *)pa;
 
-  acquire(&kmem.lock);
+  acquire(&kmem.lock); // get lock
   r->next = kmem.freelist;
   kmem.freelist = r;
   release(&kmem.lock);
@@ -70,13 +73,52 @@ kalloc(void)
 {
   struct run *r;
 
+  // get a page
   acquire(&kmem.lock);
   r = kmem.freelist;
-  if(r)
+  if (r)
     kmem.freelist = r->next;
   release(&kmem.lock);
 
-  if(r)
-    memset((char*)r, 5, PGSIZE); // fill with junk
-  return (void*)r;
+  if (r)
+    memset((char *)r, 5, PGSIZE); // fill with junk
+  return (void *)r;
+}
+
+// return the free memory size(byte)
+int get_free_mem(void)
+{
+  int pages = 0;
+  struct run *r;
+
+  acquire(&kmem.lock);
+  r = kmem.freelist;
+  while (r)
+  {
+    // printf("r: %p\n", r);
+    r = r->next;
+    pages++;
+  }
+  release(&kmem.lock);
+
+  return pages * PGSIZE; // 分页机制
+}
+
+// discard.
+// 返回内存中剩余的空闲字节数
+int freemem(void)
+{
+  int free_bytes = 0;
+  struct run *r;
+
+  acquire(&kmem.lock); // 获取锁
+  r = kmem.freelist;
+  while (r)
+  {
+    free_bytes += PGSIZE; // 累加每个空闲页的大小
+    r = r->next;
+  }
+  release(&kmem.lock); // 释放锁
+
+  return free_bytes;
 }
