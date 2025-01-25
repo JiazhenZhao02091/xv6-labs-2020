@@ -22,8 +22,8 @@ void main()
     kinit();            // physical page allocator // 物理页
     kvminit();          // create kernel page table // 内核页表
     kvminithart();      // turn on paging
-    procinit();         // process table //进程页表
-    trapinit();         // trap vectors
+    procinit();         // process table //进程表
+    trapinit();         // trap vectors // 中断
     trapinithart();     // install kernel trap vector
     plicinit();         // set up interrupt controller
     plicinithart();     // ask PLIC for device interrupts

@@ -13,8 +13,8 @@
 // 10000000 -- uart0
 // 10001000 -- virtio disk
 // 80000000 -- boot ROM jumps here in machine mode
-//             -kernel loads the kernel here
-// unused RAM after 80000000.
+//            -kernel loads the kernel here
+// unused RAM after 80000000.       内存在这里之后
 
 // the kernel uses physical memory thus:
 // 80000000 -- entry.S, then kernel text and data
