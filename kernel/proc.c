@@ -259,7 +259,7 @@ uchar initcode[] = {
 void userinit(void)
 {
   struct proc *p;
-
+  pte_t *pte, *kernelpte;
   p = allocproc();
   initproc = p;
 
@@ -267,6 +267,11 @@ void userinit(void)
   // and data into it.
   uvminit(p->pagetable, initcode, sizeof(initcode));
   p->sz = PGSIZE;
+
+  // 复制
+  pte = walk(p->pagetable, 0, 0);
+  kernelpte = walk(p->kernel_pagetable, 0, 1);
+  *kernelpte = (*pte) & (~PTE_U);
 
   // prepare for the very first "return" from kernel to user.
   p->trapframe->epc = 0;     // user program counter
@@ -290,10 +295,17 @@ int growproc(int n)
   sz = p->sz;
   if (n > 0)
   {
+    // 加上PLIC限制
+    if (PGROUNDUP(sz + n) >= PLIC)
+    {
+      return -1;
+    }
     if ((sz = uvmalloc(p->pagetable, sz, sz + n)) == 0)
     {
       return -1;
     }
+    // 复制一份到内核页表
+    u2kvmcopy(p->pagetable, p->kernel_pagetable, sz - n, sz);
   }
   else if (n < 0)
   {
@@ -339,6 +351,9 @@ int fork(void)
     if (p->ofile[i])
       np->ofile[i] = filedup(p->ofile[i]);
   np->cwd = idup(p->cwd);
+
+  // 复制到新进程的内核页表
+  u2kvmcopy(np->pagetable, np->kernel_pagetable, 0, np->sz);
 
   safestrcpy(np->name, p->name, sizeof(p->name));
 
