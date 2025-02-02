@@ -64,38 +64,30 @@ void usertrap(void)
 
     syscall();
   }
-  else if (r_scause() == 13 || r_scause() == 15)
-  {
-    // 缺页异常
-    /*
-      1.分配物理页面
-      2.添加映射
-      3.返回用户进程空间
-    */
-    // 1.分配物理页面
-    uint64 va = r_stval(); // 错误的虚拟地址
-    va = PGROUNDDOWN(va);  // 下取整
-    pagetable_t pagetable = p->pagetable;
-    char *mem = kalloc();
-    if (mem == 0 || va > p->sz || va < PGROUNDUP(p->trapframe->sp) - 1) // kalloc成功 &&
-                                                                        // 错误地址在栈空间内，且小于最大虚拟地址(从0开始，最大就是sz)
-    {
-      uvmdealloc(pagetable, va, va);
-      p->killed = 1;
-    }
-    memset(mem, 0, PGSIZE);
-    // 2.添加映射
-    if (mappages(pagetable, va, PGSIZE, (uint64)mem, PTE_W | PTE_X | PTE_R | PTE_U) != 0)
-    {
-      kfree(mem);
-      uvmdealloc(pagetable, va, va);
-      p->killed = 1;
-    }
-    // 3.返回用户进程空间
-  }
   else if ((which_dev = devintr()) != 0)
   {
     // ok
+  }
+  else if (r_scause() == 13 || r_scause() == 15)
+  {
+    // 处理页面错误
+    uint64 fault_va = r_stval(); // 产生页面错误的虚拟地址
+    char *pa;                    // 分配的物理地址
+    if (PGROUNDUP(p->trapframe->sp) - 1 < fault_va && fault_va < p->sz &&
+        (pa = kalloc()) != 0)
+    {
+      memset(pa, 0, PGSIZE);
+      if (mappages(p->pagetable, PGROUNDDOWN(fault_va), PGSIZE, (uint64)pa, PTE_R | PTE_W | PTE_X | PTE_U) != 0)
+      {
+        kfree(pa);
+        p->killed = 1;
+      }
+    }
+    else
+    {
+      // printf("usertrap(): out of memory!\n");
+      p->killed = 1;
+    }
   }
   else
   {

@@ -65,7 +65,6 @@ int argint(int n, int *ip)
 int argaddr(int n, uint64 *ip)
 {
   *ip = argraw(n);
-
   struct proc *p = myproc();
 
   // 处理向系统调用传入lazy allocation地址的情况
@@ -85,7 +84,9 @@ int argaddr(int n, uint64 *ip)
       }
     }
     else
+    {
       return -1;
+    }
   }
 
   return 0;

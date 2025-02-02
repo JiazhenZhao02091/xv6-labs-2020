@@ -70,8 +70,8 @@ void kvminithart()
 pte_t *
 walk(pagetable_t pagetable, uint64 va, int alloc)
 {
-  // if (va >= MAXVA)
-  //   panic("walk");
+  if (va >= MAXVA)
+    panic("walk");
 
   for (int level = 2; level > 0; level--)
   {
@@ -292,8 +292,8 @@ void freewalk(pagetable_t pagetable)
     }
     else if (pte & PTE_V)
     {
-      continue;
-      // panic("freewalk: leaf");
+      // continue;
+      panic("freewalk: leaf");
     }
   }
   kfree((void *)pagetable);

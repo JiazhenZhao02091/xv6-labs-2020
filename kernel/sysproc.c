@@ -47,24 +47,24 @@ sys_sbrk(void)
   // 获取参数
   if (argint(0, &n) < 0)
     return -1;
-  // 修改进程的大小
   struct proc *p = myproc();
   addr = p->sz;
   uint64 sz = p->sz;
+
   if (n > 0)
+  {
+    // lazy allocation
     p->sz += n;
-  else if (n < 0 && n + sz > 0)
+  }
+  else if (sz + n > 0)
   {
     sz = uvmdealloc(p->pagetable, sz, sz + n);
     p->sz = sz;
   }
   else
+  {
     return -1;
-
-  /*
-  if (growproc(n) < 0)
-    return -1;
-  */
+  }
   return addr;
 }
 
