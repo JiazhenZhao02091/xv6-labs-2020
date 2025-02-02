@@ -78,6 +78,20 @@ void usertrap(void)
   if (p->killed)
     exit(-1);
 
+  if (which_dev == 2)
+  {
+    p->last_ticks++;                                                           // 累加
+    if (p->last_ticks == p->ticks && p->last_ticks != 0 && p->alarm_flag == 0) // 相同就跳转
+    {
+      // 保存寄存器  sysalarmreturn()恢复寄存器
+      memmove(p->alarmframe, p->trapframe, sizeof(struct trapframe));
+      // Change the trapframe to the handler.
+      p->trapframe->epc = (uint64)p->handler;
+      p->last_ticks = 0;
+      p->alarm_flag = 1;
+    }
+  }
+
   // give up the CPU if this is a timer interrupt.
   if (which_dev == 2)
     yield();
