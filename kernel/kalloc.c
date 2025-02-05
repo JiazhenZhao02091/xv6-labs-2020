@@ -33,7 +33,7 @@ void kinit()
     p[5] = '0' + i;
     initlock(&kmem[i].lock, p);
   }
-  freerange(end, (void *)PHYSTOP); // 默认将所有物理内存分配给一个CPU
+  freerange(end, (void *)PHYSTOP); // 初始将所有物理内存分配给一个CPU
   // initlock(&kmem.lock, "kmem");
   // freerange(end, (void *)PHYSTOP);
 }
