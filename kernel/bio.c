@@ -117,7 +117,7 @@ bget(uint dev, uint blockno)
 
     // 使用时间戳
     for (tmp = bcache.buckets[t].head.next; tmp != &bcache.buckets[t].head; tmp = tmp->next)
-      if (tmp->refcnt == 0 && (b == 0 && tmp->time_stamp < b->time_stamp))
+      if (tmp->refcnt == 0 && (b == 0 || tmp->time_stamp < b->time_stamp))
         b = tmp;
 
     if (b != 0)
