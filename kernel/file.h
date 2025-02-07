@@ -1,3 +1,5 @@
+// 文件描述符
+/* 每次open系统调用都会创建一个file结构体--文件描述父 */
 struct file
 {
   enum

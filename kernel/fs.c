@@ -9,6 +9,7 @@
 // routines.  The (higher-level) system call implementations
 // are in sysfile.c.
 
+/* inode 函数要求调用方处理锁  */
 #include "types.h"
 #include "riscv.h"
 #include "defs.h"
@@ -712,7 +713,7 @@ static struct inode *
 namex(char *path, int nameiparent, char *name)
 {
   struct inode *ip, *next;
-
+  /* 绝对路径 or 相对路径 */
   if (*path == '/')
     ip = iget(ROOTDEV, ROOTINO);
   else
@@ -732,6 +733,10 @@ namex(char *path, int nameiparent, char *name)
       iunlock(ip);
       return ip;
     }
+    /*
+      如果iget使用ilock上锁的话，那么在目录为.当前目录的情况下，会导致死锁
+      因此，iget应该和ilock分离
+     */
     if ((next = dirlookup(ip, name, 0)) == 0)
     {
       iunlockput(ip);
